@@ -1,0 +1,624 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "App",
+    "type": "object",
+    "definitions": {
+        "argsArray": {
+            "type": "array",
+            "description": "List of arguments to be used in the card.",
+            "items": {
+                "type": "object",
+                "description": "Argument for the card that will allow the user to input information.",
+                "additionalProperties": false,
+                "default": {},
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the argument.",
+                        "default": "what_to_say"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Type of the argument to render a control.",
+                        "default": "text",
+                        "enum": [
+                            "autocomplete",
+                            "dropdown",
+                            "text",
+                            "number",
+                            "device",
+                            "color"
+                        ]
+                    },
+                    "min": {
+                        "type": "number",
+                        "description": "Minimum allowed value for number-type arguments."
+                    },
+                    "max": {
+                        "type": "number",
+                        "description": "Maximum allowed value for number-type arguments."
+                    },
+                    "style": {
+                        "type": "object",
+                        "description": "Additional styling options for the control.",
+                        "properties": {
+                            "width": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "filter": {
+                        "type": "string",
+                        "default": "driver_uri=homey:app:com.coffee.machine",
+                        "description": "Querystring-like filter for device-type arguments, eg. driver_uri=homey:app:com.coffee.machine&driver_id=coffeemachine"
+                    },
+                    "placeholder": {
+                        "description": "Text to be shown without any data in the input.",
+                        "$ref": "#/definitions/translatableObject"
+                    },
+                    "values": {
+                        "type": "array",
+                        "description": "List of allowed values in dropdown-type and autocomplete-type arguments",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "Internal ID of the value."
+                                },
+                                "label": {
+                                    "description": "User viewable label of the value.",
+                                    "$ref": "#/definitions/translatableObject"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "imageObject": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "large": {
+                    "type": "string",
+                    "description": "Location of a large image. eg. ./somedir/some-large-image.jpg"
+                },
+                "small": {
+                    "type": "string",
+                    "description": "Location of a small image. eg. ./somedir/some-small-image.jpg"
+                }
+            }  
+        },
+        "translatableObject": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["en"],
+            "properties": {
+                "en": {
+                    "type": "string",
+                    "description": "English translation of the object."                         
+                },
+                "nl": {
+                    "type": "string",
+                    "description": "Dutch translation of the object."
+                },
+                "de": {
+                    "type": "string",
+                    "description": "German translation of the object."
+                },
+                "es": {
+                    "type": "string",
+                    "description": "Spanish translation of the object."
+                },
+                "fr": {
+                    "type": "string",
+                    "description": "French translation of the object."
+                }
+            }
+        },
+        "setting": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"  
+                },
+                "label": {
+                    "$ref": "#/definitions/translatableObject",
+                    "description": "Label of the setting."
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/setting"
+                    }
+                }
+            } 
+        },
+        "category": {
+            "type": "string",
+            "description": "The category of the Homey app, eg. video",
+            "enum": [
+                "appliances",
+                "climate",
+                "internet",
+                "lights",
+                "music",
+                "tools",
+                "security",
+                "video"
+            ]
+        }
+    },
+    "additionalProperties": false,
+    "required": ["id", "name", "version", "compatibility"],
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "The schema to be used for validation of this json file."
+        },
+        "id": { 
+            "type": "string",
+            "default": "com.athom.hello",
+            "description": "Internal ID of the Homey app. The app's ID should be a reverse domain name. For example, if you're creating an app for https://solarpanels.acme.org, your app ID will be org.acme.solarpanels.",
+            "pattern": "^[a-z0-9\\-](?=.*?\\.)[a-z0-9\\.\\-]{3,}[a-z0-9\\-]$"
+        },
+        "category": {
+            "default": "",
+            "description": "Category of the Homey app, eg. \"Internet\". This can also be a list categories.",
+            "anyOf": [
+                {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "description": "The categories of the Homey app, eg. video, music. These will be used in the app store.",
+                    "items": { 
+                        "$ref": "#/definitions/category"            
+                    }
+                },
+                {
+                    "$ref": "#/definitions/category"            
+                }
+            ]
+        },
+        "version": { 
+            "type": "string",
+            "default": "0.0.1",
+            "description": "Version of the Homey app, eg 2.0.1. The version should be following SemVer rules: http://semver.org/."
+        },
+        "compatibility": { 
+            "type": "string",
+            "description": "Compatibility rules of the app with the Homey version.",
+            "default": "0.x || 1.x"
+        },
+        "name": { 
+            "$ref": "#/definitions/translatableObject",
+            "description": "Name of the Homey app as seen by users. It will be shown in the app store and in the settings > apps section of the Homey."
+        },
+        "description": { 
+            "$ref": "#/definitions/translatableObject",
+            "description": "Description of the Homey app."
+        },
+        "author": { 
+            "type": "object",
+            "description": "Author of the Homey app.",
+            "additionalProperties": false,
+            "properties": {
+                "name" : {
+                    "type": "string",
+                    "description": "Name of the author, eg. John Doe"
+                },
+                "email" : {
+                    "type": "string",
+                    "description": "Email of the author, eg. john@acme.com"
+                },
+                "website" : {
+                    "type": "string",
+                    "description": "Name of the author, eg. http://www.acme.com/"
+                }
+            }
+        },
+        "permissions": {
+            "type": "array",
+            "description": "List of requested permissions by the Homey app.",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "homey:manager:alarm",
+                    "homey:manager:devices",
+                    "homey:manager:geolocation",
+                    "homey:manager:insights",
+                    "homey:manager:ledring",
+                    "homey:manager:media",
+                    "homey:manager:speech-input",
+                    "homey:manager:speech-output",
+                    "homey:wireless:433",
+                    "homey:wireless:868",
+                    "homey:wireless:nfc"
+                ]
+            }
+        },
+        "speech": {
+            "type": "array",
+            "description": "List of speech events that the Homey app should support.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "importance", "triggers"],
+                "default": {},
+                "properties": {
+                    "id": {
+                        "description": "Internal ID of the speech event, eg. weather",
+                        "type": "string"
+                    },
+                    "importance": {
+                        "description": "Importance of the speech event. The importance tells Homey how likely it is that those specific words are meant for your app, on a scale of 0 to 1. Do not abuse this, as your app will incorrectly trigger often, which leads to it being deleted by the user, and maybe deleted by Athom from the app store.",
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                    },
+                    "triggers": {
+                        "description": "List of triggers for the speech event.",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["en"],
+                        "properties": {
+                            "en" : {
+                                "type": "array",
+                                "description": "List of English keywords to trigger on, eg. weather.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "nl" : {
+                                "type": "array",
+                                "description": "List of Dutch keywords to trigger on, eg. weer.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "de" : {
+                                "type": "array",
+                                "description": "List of German keywords to trigger on, eg. wetter.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "es" : {
+                                "type": "array",
+                                "description": "List of Spanish keywords to trigger on, eg. clima.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "fr" : {
+                                "type": "array",
+                                "description": "List of French keywords to trigger on, eg. météo.",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }      
+                    }
+                }
+            }
+        },
+        "drivers": {
+            "type": "array",
+            "description": "List of drivers supported by the Homey app.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "name", "class", "capabilities"],
+                "default": {},
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Internal ID of the driver, eg. my-driver"
+                    },
+                    "name": {
+                        "$ref": "#/definitions/translatableObject",
+                        "description": "User viewable name of the driver."
+                    },
+                    "images": {
+                        "$ref": "#/definitions/imageObject",
+                        "description": "Paths to the images used for the driver."
+                    },
+                    "class": {
+                        "description": "Class of the driver/device. This will define a list of possible capabilities the app can support. eg. light => \"dim\", \"onoff\"",
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "button",
+                                    "coffeemachine",
+                                    "windowcoverings",
+                                    "doorbell",
+                                    "fan",
+                                    "heater",
+                                    "homealarm",
+                                    "kettle",
+                                    "light",
+                                    "lock",
+                                    "other",
+                                    "sensor",
+                                    "thermostat",
+                                    "vacuumcleaner",
+                                    "socket"
+                                ]  
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]                      
+                    },
+                    "capabilities": {
+                        "type": "array",
+                        "description": "List of capabilities of the driver.",
+                        "items": {
+                            "default": "onoff",
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "onoff",
+                                        "alarm_generic",
+                                        "target_temperature",
+                                        "measure_temperature",
+                                        "dim",
+                                        "windowcoverings_state",
+                                        "homealarm_state",
+                                        "alarm_tamper",
+                                        "light_hue",
+                                        "light_saturation",
+                                        "light_temperature",
+                                        "locked",
+                                        "lock_mode",
+                                        "measure_battery",
+                                        "measure_co",
+                                        "measure_co2",
+                                        "measure_humidity",
+                                        "measure_pressure",
+                                        "measure_noise",
+                                        "measure_rain",
+                                        "measure_wind_strength",
+                                        "measure_wind_angle",
+                                        "measure_gust_strength",
+                                        "measure_gust_angle",
+                                        "measure_power",
+                                        "measure_luminance",
+                                        "alarm_contact",
+                                        "alarm_co",
+                                        "alarm_co2",
+                                        "alarm_fire",
+                                        "alarm_smoke",
+                                        "alarm_motion",
+                                        "alarm_night",
+                                        "alarm_battery",
+                                        "meter_power",
+                                        "meter_water",
+                                        "meter_gas",
+                                        "source_select",
+                                        "volume_set",
+                                        "volume_up",
+                                        "volume_down",
+                                        "volume_mute",
+                                        "stream_http",
+                                        "stream_bluetooth",                 
+                                        "thermostat_mode",
+                                        "thermostat_state",
+                                        "vacuumcleaner_state"         
+                                    ]       
+                                },
+                                {
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    },
+                    "pair": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["id"],
+                            "default": {},
+                            "properties": {
+                                "id" : {
+                                    "type": "string"
+                                },
+                                "template" : {
+                                    "type": "string"
+                                },
+                                "navigation": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "next": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "settings": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/setting"
+                        }
+                    }
+                }                
+            }
+        },
+        "images": {
+            "$ref": "#/definitions/imageObject",
+            "description": "Paths to the images used for the Homey app."
+        },
+        "flow": {
+            "type": "object",
+            "description": "The flow cards supported by the Homey app.",
+            "additionalProperties": false,
+            "properties": {
+                "triggers" : {
+                    "type": "array",
+                    "description": "List of trigger cards supported by the Homey app in the flow editor.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "description": "Trigger card for the flow editor.",
+                        "required": ["id", "title"],
+                        "default": {},
+                        "properties": {
+                            "id" : {
+                                "type": "string",
+                                "description": "Internal ID of the trigger card."
+                            },
+                            "title": {
+                                "$ref": "#/definitions/translatableObject",
+                                "description": "User viewable title of the trigger card."
+                            },
+                            "fluidArgs" : {
+                                "type": "boolean"
+                            },
+                            "args": {
+                                "$ref": "#/definitions/argsArray"
+                            },
+                            "tokens": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "default": {},
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "Internal name of the token."
+                                        },
+                                        "title": {
+                                            "$ref": "#/definitions/translatableObject",
+                                            "description": "User viewable title of the token."
+                                        },
+                                        "example": {
+                                            "$ref": "#/definitions/translatableObject",
+                                            "description": "Example value of the token."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "conditions" : {
+                    "type": "array",
+                    "description": "List of condition cards supported by the Homey app in the flow editor.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "title"],
+                        "description": "Condition card for the flow editor.",
+                        "default": {},
+                        "properties": {
+                            "id" : {
+                                "type": "string",
+                                "description": "Internal ID of the condition card."
+                            },
+                            "title": {
+                                "$ref": "#/definitions/translatableObject",
+                                "description": "User viewable title of the condition card."
+                            },
+                            "args": {
+                                "$ref": "#/definitions/argsArray"
+                            }
+                        }
+                    }
+                },
+                "actions": {
+                    "type": "array",
+                    "description": "List of action cards supported by the Homey app in the flow editor.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "title"],
+                        "description": "Action card for the flow editor.",
+                        "default": {},
+                        "properties": {
+                            "id" : {
+                                "type": "string",
+                                "description": "Internal ID of the action card."
+                            },
+                            "title": {
+                                "$ref": "#/definitions/translatableObject",
+                                "description": "User viewable title of the action card."
+                            },
+                            "fluidArgs" : {
+                                "type": "boolean"
+                            },
+                            "args": {
+                                "$ref": "#/definitions/argsArray"
+                            }
+                        }
+                    }
+                }
+            }            
+        },
+        "contributors": {
+            "type": "object",
+            "description": "A list of contributors to the Homey app.",
+            "additionalProperties": false,
+            "properties": {
+                "developers": {
+                    "type": "array",
+                    "description": "A list of developers that contributed to the Homey app.",
+                    "items": {
+                        "type": "object",
+                        "default": {},
+                        "additionalProperties": false,
+                        "properties": {
+                            "email": {
+                                "type": "string",
+                                "description": "Email of the developer.",
+                                "format": "email"
+                            }
+                        }
+                    }
+                },
+                "translators": {
+                    "type": "array",
+                    "description": "A list of translators that contributed to the Homey app.",
+                    "items": {
+                        "type": "object",
+                        "default": {},
+                        "additionalProperties": false,
+                        "properties": {
+                            "email": {
+                                "type": "string",
+                                "description": "Email of the translator.",
+                                "format": "email"
+                            },
+                            "lang": {
+                                "type": "string",
+                                "description": "Language of the translation."
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "dependencies": {
+            "type": "object",
+            "description": "A list of NPM packages the app is depending on, eg. \"node-hue-api\": \"1.1.*\"",
+            "patternProperties": {
+                ".*": {
+                    "type": "string",
+                    "default": "1.0.0",
+                    "description": "SemVer version of the NPM package."
+                }
+            }
+        }
+    }
+}
